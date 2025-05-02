@@ -18,49 +18,43 @@ def setup_driver():
     """Sets up the Selenium WebDriver using undetected-chromedriver."""
     print("INFO (Screenshot): Setting up WebDriver using undetected-chromedriver...")
     options = uc.ChromeOptions()
-    # Common options (some might be handled by uc automatically, but can be kept)
+    # Common options
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-gpu") # Often recommended with headless
     options.add_argument(f"--window-size={SCREENSHOT_WIDTH},{SCREENSHOT_HEIGHT}")
     options.add_argument("--hide-scrollbars")
     options.add_argument("--log-level=3")
-    # options.add_argument('--headless') # TRY WITHOUT HEADLESS FIRST! It significantly increases success rate.
-                                        # If you absolutely need headless, add it back later, but expect lower success.
+
+    # --- ENABLE HEADLESS ---
+    # Uncomment the following line.
+    # Note: Newer Chrome versions might prefer "--headless=new"
+    options.add_argument('--headless')
+    # options.add_argument('--headless=new') # Try this if the above doesn't work
+    # --- END HEADLESS ---
 
     # Add a realistic User-Agent (optional, uc might do this, but can't hurt)
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36') # Example UA
 
     driver = None
     try:
-        print("INFO (Screenshot): Initializing undetected_chromedriver...")
-        # --- Use undetected_chromedriver ---
-        # It often manages the driver download/path automatically.
-        # You can specify version_main if needed, e.g., version_main=108
-        driver = uc.Chrome(options=options, use_subprocess=True)
-        # ------------------------------------
-
-        print("INFO (Screenshot): WebDriver setup successful.")
-        driver.set_page_load_timeout(45) # Increase page load timeout
+        print("INFO (Screenshot): Initializing undetected_chromedriver (headless)...") # Added note
+        # Specify the version if you needed it before
+        driver = uc.Chrome(options=options, use_subprocess=True, version_main=103) # Keep version_main if needed
+        print("INFO (Screenshot): WebDriver setup successful (headless).")
+        driver.set_page_load_timeout(45)
         return driver
     except WebDriverException as e:
-        print(f"ERROR (Screenshot): Failed to initialize WebDriver: {e}")
-        if "cannot find chrome binary" in str(e).lower():
-             print("  >> Ensure Google Chrome or Chromium browser is installed.")
-        elif "timed out" in str(e).lower():
-             print("  >> WebDriver timed out during initialization. Check network or ChromeDriver compatibility.")
-        else:
-             print("  >> Check ChromeDriver version compatibility with your installed Chrome browser if not using automatic management.")
-        # Close driver if partially initialized
+        print(f"ERROR (Screenshot): Failed to initialize WebDriver (headless): {e}")
+        # ... (rest of your error handling) ...
         if driver:
             driver.quit()
         return None
     except Exception as e:
-        print(f"ERROR (Screenshot): An unexpected error occurred during WebDriver setup: {e}")
+        print(f"ERROR (Screenshot): An unexpected error occurred during WebDriver setup (headless): {e}")
         if driver:
             driver.quit()
         return None
-
 # --- take_screenshots function remains the same ---
 # (Make sure it uses the driver returned by the modified setup_driver)
 def take_screenshots(items_list):
